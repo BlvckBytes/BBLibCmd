@@ -122,41 +122,16 @@ public abstract class ACommand extends Command {
    * @param label Label of the command, either name or an alias
    * @param args Args passed with the command
    */
-  protected void invoke(CommandSender cs, String label, String[] args) throws CommandException {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
-   * Callback method for command invocations
-   * @param p Executing player
-   * @param label Label of the command, either name or an alias
-   * @param args Args passed with the command
-   */
-  protected void invoke(Player p, String label, String[] args) throws CommandException {
-    throw new UnsupportedOperationException();
-  }
+  protected abstract void invoke(CommandSender cs, String label, String[] args) throws CommandException;
 
   /**
    * Callback method for command autocompletion (tab)
-   * @param p Executing player
+   * @param cs Executing command sender
    * @param args Existing arguments in the chat-bar
    * @param currArg Index of the current argument within args
    * @return Stream of suggestions, will limited to 10 internally
    */
-  protected Stream<String> onTabCompletion(Player p, String[] args, int currArg) {
-    return Stream.empty();
-  }
-
-  /**
-   * Callback method for command autocompletion (tab)
-   * @param cs Executing sender
-   * @param args Existing arguments in the chat-bar
-   * @param currArg Index of the current argument within args
-   * @return Stream of suggestions, will limited to 10 internally
-   */
-  protected Stream<String> onTabCompletion(CommandSender cs, String[] args, int currArg) {
-    return Stream.empty();
-  }
+  protected abstract Stream<String> onTabCompletion(CommandSender cs, String[] args, int currArg);
 
   //=========================================================================//
   //                                 Command                                 //
@@ -208,43 +183,27 @@ public abstract class ACommand extends Command {
     @NotNull String label,
     @NotNull String[] args
   ) {
+    Player p = cs instanceof Player ? (Player) cs : null;
+
     try {
+      // Check for the top level permission
+      if (rootPerm != null && p != null && !p.hasPermission(rootPerm))
+        throw new MissingPermissionException(sect, rootPerm);
 
-      // Try to invoke the generic handler first
-      try {
-        invoke(cs, label, args);
-      }
-
-      // Generic command handler has not been implemented, thus
-      // this command has to be a player command
-      catch (UnsupportedOperationException ignored) {
-
-        // Ensure that the command sender is actually a player
-        if (!(cs instanceof Player))
-          throw notAPlayer();
-
-        Player p = (Player) cs;
-
-        // Check for the top level permission
-        if (rootPerm != null && !p.hasPermission(rootPerm))
+      // Check for all permissions regarding arguments
+      for (int i = 0; i < args.length; i++) {
+        String argPerm = cmdArgs[Math.min(i, cmdArgs.length - 1)].getPermission();
+        if (argPerm != null && p != null && !p.hasPermission(argPerm))
           throw new MissingPermissionException(sect, rootPerm);
-
-        // Check for all permissions regarding arguments
-        for (int i = 0; i < args.length; i++) {
-          String argPerm = cmdArgs[Math.min(i, cmdArgs.length - 1)].getPermission();
-          if (argPerm != null && !p.hasPermission(argPerm))
-            throw new MissingPermissionException(sect, rootPerm);
-        }
-
-        invoke((Player) cs, label, args);
       }
 
+      invoke(cs, label, args);
       return true;
     }
 
     // Command exception occurred, send to command sender
     catch (CommandException ce) {
-      cs.sendMessage(ce.getText().toLegacyText());
+      cs.spigot().sendMessage(ce.getText());
       return false;
     }
   }
