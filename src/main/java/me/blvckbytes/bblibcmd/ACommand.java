@@ -2,6 +2,7 @@ package me.blvckbytes.bblibcmd;
 
 import lombok.Getter;
 import me.blvckbytes.bblibcmd.exception.*;
+import me.blvckbytes.bblibconfig.ConfigValue;
 import me.blvckbytes.bblibconfig.IConfig;
 import me.blvckbytes.bblibdi.AutoInjectLate;
 import me.blvckbytes.bblibutil.TimeUtil;
@@ -52,20 +53,22 @@ public abstract class ACommand extends Command {
 
   /**
    * @param name Name of the command
-   * @param description Description of the command
    * @param cmdArgs List of available arguments
    */
   public ACommand(
     IConfig cfg,
     String name,
-    String description,
     @Nullable String rootPerm,
     CommandArgument... cmdArgs
   ) {
     super(
       // Get the name from the first entry of the comma separated list
       name.split(",")[0],
-      description,
+
+      // Get the description from the config
+      getDescriptionSection(cfg, name)
+            .getDescription()
+            .asScalar(),
 
       // Generate a usage string from all first tuple items of the args-map
       Arrays.stream(cmdArgs)
@@ -89,6 +92,13 @@ public abstract class ACommand extends Command {
     this.sect = cfg.reader("config")
       .flatMap(r -> r.parseValue("messages", CommandHandlerSection.class, true))
       .orElseThrow();
+
+    // Patch all argument descriptions using config values
+    Map<String, ConfigValue> argDescs = getDescriptionSection(cfg, name).getArgs();
+    for (CommandArgument arg : cmdArgs) {
+      ConfigValue argDesc = argDescs.get(arg.getNormalizedName());
+      arg.setDescription(argDesc == null ? "" : argDesc.asScalar());
+    }
 
     this.cmdArgs = cmdArgs;
     this.rootPerm = rootPerm;
@@ -787,6 +797,18 @@ public abstract class ACommand extends Command {
   //=========================================================================//
   //                             Static Utilities                            //
   //=========================================================================//
+
+  /**
+   * Get the command's description section from the config by it's name
+   * @param cfg Config ref
+   * @param name Command's name
+   * @return Parsed description section, cached internally
+   */
+  private static CommandDescriptionSection getDescriptionSection(IConfig cfg, String name) {
+    return cfg.reader("config")
+      .flatMap(r -> r.parseValue("commands." + name, CommandDescriptionSection.class, true))
+      .orElseThrow();
+  }
 
   /**
    * Get a command by it's command name string

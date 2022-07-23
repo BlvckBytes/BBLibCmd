@@ -2,6 +2,8 @@ package me.blvckbytes.bblibcmd;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
+import org.jetbrains.annotations.Nullable;
 
 /*
   Author: BlvckBytes <blvckbytes@gmail.com>
@@ -14,10 +16,25 @@ import lombok.Getter;
 public class CommandArgument {
 
   private String name;
-  private String description;
-  private String permission;
+  private @Nullable String permission;
 
-  public CommandArgument(String name, String description) {
-    this(name, description, null);
+  @Setter
+  private String description;
+
+  /**
+   * Create a new command argument description
+   * @param name Name of the argument which will be displayed, use [] fo
+   *            optional and <> for mandatory arguments
+   * @param permission Permission required, may be null if none
+   */
+  public CommandArgument(String name, @Nullable String permission) {
+    this(name, "", permission);
+  }
+
+  /**
+   * Get the name of this argument with stripped requirement brackets or spaces
+   */
+  public String getNormalizedName() {
+    return name.replaceAll("[<>\\[\\] ]", "");
   }
 }
