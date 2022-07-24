@@ -14,6 +14,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,10 +53,13 @@ public abstract class ACommand extends Command {
   }
 
   /**
+   * @param plugin Plugin ref
+   * @param cfg Config ref
    * @param name Name of the command
    * @param cmdArgs List of available arguments
    */
   public ACommand(
+    JavaPlugin plugin,
     IConfig cfg,
     String name,
     @Nullable String rootPerm,
@@ -114,7 +118,7 @@ public abstract class ACommand extends Command {
       commandMap.getClass()
         .getSuperclass()
         .getDeclaredMethod("register", String.class, Command.class)
-        .invoke(commandMap, name, this);
+        .invoke(commandMap, plugin.getName(), this);
     } catch (Exception e) {
       e.printStackTrace();
     }
