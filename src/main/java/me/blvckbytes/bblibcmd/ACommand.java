@@ -324,7 +324,10 @@ public abstract class ACommand extends Command {
    * @return Stream of suggestions
    */
   protected Stream<String> suggestOfflinePlayers(String[] args, int currArg, List<OfflinePlayer> exclude) {
-    return Arrays.stream(Bukkit.getOfflinePlayers())
+    return Stream.concat(
+      Arrays.stream(Bukkit.getOfflinePlayers()),
+      Bukkit.getOnlinePlayers().stream()
+    )
       .filter(p -> !exclude.contains(p))
       .filter(OfflinePlayer::hasPlayedBefore)
       .map(OfflinePlayer::getName)
@@ -490,7 +493,10 @@ public abstract class ACommand extends Command {
     }
 
     // Find the first player that played before and has this name
-    Optional<OfflinePlayer> res = Arrays.stream(Bukkit.getOfflinePlayers())
+    Optional<OfflinePlayer> res = Stream.concat(
+      Arrays.stream(Bukkit.getOfflinePlayers()),
+      Bukkit.getOnlinePlayers().stream()
+    )
       .filter(OfflinePlayer::hasPlayedBefore)
       .filter(n -> n.getName() != null && n.getName().equals(args[index]))
       .findFirst();
