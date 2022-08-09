@@ -70,14 +70,14 @@ public abstract class ACommand extends Command {
       name.split(",")[0],
 
       // Get the description from the config
-      getDescriptionSection(cfg, name)
+      getDescriptionSection(cfg, name.split(",")[0])
             .getDescription()
             .asScalar(),
 
       // Generate a usage string from all first tuple items of the args-map
       Arrays.stream(cmdArgs)
         .map(CommandArgument::getName)
-        .reduce("/" + name, (acc, curr) -> acc + " " + curr),
+        .reduce("/" + name.split(",")[0], (acc, curr) -> acc + " " + curr),
 
       // Get aliases by the comma separated list "name"
       // Example: <main>,<alias 1>,<alias 2>
@@ -98,7 +98,7 @@ public abstract class ACommand extends Command {
       .orElseThrow();
 
     // Patch all argument descriptions using config values
-    Map<String, ConfigValue> argDescs = getDescriptionSection(cfg, name).getArgs();
+    Map<String, ConfigValue> argDescs = getDescriptionSection(cfg, getName()).getArgs();
     for (CommandArgument arg : cmdArgs) {
       ConfigValue argDesc = argDescs.get(arg.getNormalizedName());
       arg.setDescription(argDesc == null ? "" : argDesc.asScalar());
