@@ -28,7 +28,7 @@ public class CommandArgument {
    * @param permission Permission required, may be null if none
    */
   public CommandArgument(String name, @Nullable String permission) {
-    this(name, "", permission);
+    this(name, permission, "");
   }
 
   /**
