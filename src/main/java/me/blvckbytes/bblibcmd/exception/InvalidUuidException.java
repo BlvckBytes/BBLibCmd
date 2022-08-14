@@ -1,6 +1,7 @@
 package me.blvckbytes.bblibcmd.exception;
 
 import me.blvckbytes.bblibcmd.CommandHandlerSection;
+import me.blvckbytes.bblibconfig.GradientGenerator;
 
 /*
   Author: BlvckBytes <blvckbytes@gmail.com>
@@ -23,12 +24,12 @@ import me.blvckbytes.bblibcmd.CommandHandlerSection;
 */
 public class InvalidUuidException extends CommandException {
 
-  public InvalidUuidException(CommandHandlerSection sect, String input) {
+  public InvalidUuidException(CommandHandlerSection sect, String input, GradientGenerator gradientGenerator) {
     super(
       sect.getInvalidUuid()
         .withPrefix()
         .withVariable("input", input)
-        .asComponent()
+        .asComponent(gradientGenerator)
     );
   }
 }

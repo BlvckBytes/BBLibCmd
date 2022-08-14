@@ -1,6 +1,8 @@
 package me.blvckbytes.bblibcmd.exception;
 
 import me.blvckbytes.bblibcmd.CommandHandlerSection;
+import me.blvckbytes.bblibconfig.GradientGenerator;
+import org.jetbrains.annotations.Nullable;
 
 /*
   Author: BlvckBytes <blvckbytes@gmail.com>
@@ -23,12 +25,12 @@ import me.blvckbytes.bblibcmd.CommandHandlerSection;
 */
 public class InvalidIntegerException extends CommandException {
 
-  public InvalidIntegerException(CommandHandlerSection sect, String input) {
+  public InvalidIntegerException(CommandHandlerSection sect, String input, @Nullable GradientGenerator gradientGenerator) {
     super(
       sect.getInvalidDuration()
         .withPrefix()
         .withVariable("input", input)
-        .asComponent()
+        .asComponent(gradientGenerator)
     );
   }
 }

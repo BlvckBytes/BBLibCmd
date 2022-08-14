@@ -2,7 +2,7 @@ package me.blvckbytes.bblibcmd.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import net.md_5.bungee.api.chat.BaseComponent;
+import me.blvckbytes.bblibconfig.component.IComponent;
 
 /*
   Author: BlvckBytes <blvckbytes@gmail.com>
@@ -28,6 +28,6 @@ import net.md_5.bungee.api.chat.BaseComponent;
 public class CommandException extends RuntimeException {
 
   @Getter
-  private final BaseComponent text;
+  private final IComponent getComponent;
 
 }

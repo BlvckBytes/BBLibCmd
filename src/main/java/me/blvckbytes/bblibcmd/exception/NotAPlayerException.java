@@ -1,6 +1,8 @@
 package me.blvckbytes.bblibcmd.exception;
 
 import me.blvckbytes.bblibcmd.CommandHandlerSection;
+import me.blvckbytes.bblibconfig.GradientGenerator;
+import org.jetbrains.annotations.Nullable;
 
 /*
   Author: BlvckBytes <blvckbytes@gmail.com>
@@ -23,11 +25,11 @@ import me.blvckbytes.bblibcmd.CommandHandlerSection;
 */
 public class NotAPlayerException extends CommandException {
 
-  public NotAPlayerException(CommandHandlerSection sect) {
+  public NotAPlayerException(CommandHandlerSection sect, @Nullable GradientGenerator gradientGenerator) {
     super(
       sect.getNotAPlayer()
         .withPrefix()
-        .asComponent()
+        .asComponent(gradientGenerator)
     );
   }
 }

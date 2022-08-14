@@ -3,12 +3,14 @@ package me.blvckbytes.bblibcmd;
 import lombok.Getter;
 import me.blvckbytes.bblibcmd.exception.*;
 import me.blvckbytes.bblibconfig.ConfigValue;
+import me.blvckbytes.bblibconfig.GradientGenerator;
 import me.blvckbytes.bblibconfig.IConfig;
+import me.blvckbytes.bblibconfig.component.HoverAction;
+import me.blvckbytes.bblibconfig.component.IComponent;
+import me.blvckbytes.bblibconfig.component.IComponentApplicator;
+import me.blvckbytes.bblibconfig.component.TextComponent;
 import me.blvckbytes.bblibdi.AutoInjectLate;
 import me.blvckbytes.bblibutil.TimeUtil;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -54,8 +56,9 @@ public abstract class ACommand extends Command {
 
   private final CommandHandlerSection sect;
 
-  @AutoInjectLate
-  private TimeUtil timeUtil;
+  @AutoInjectLate private TimeUtil timeUtil;
+  @AutoInjectLate private IComponentApplicator applicator;
+  @AutoInjectLate private GradientGenerator gradientGenerator;
 
   // The top level permission of this command
   @Getter
@@ -215,13 +218,13 @@ public abstract class ACommand extends Command {
     try {
       // Check for the top level permission
       if (rootPerm != null && p != null && !p.hasPermission(rootPerm))
-        throw new MissingPermissionException(sect, rootPerm);
+        throw new MissingPermissionException(sect, rootPerm, gradientGenerator);
 
       // Check for all permissions regarding arguments
       for (int i = 0; i < args.length; i++) {
         String argPerm = cmdArgs[Math.min(i, cmdArgs.length - 1)].getPermission();
         if (argPerm != null && p != null && !p.hasPermission(argPerm))
-          throw new MissingPermissionException(sect, rootPerm);
+          throw new MissingPermissionException(sect, rootPerm, gradientGenerator);
       }
 
       invoke(cs, label, args);
@@ -230,7 +233,10 @@ public abstract class ACommand extends Command {
 
     // Command exception occurred, send to command sender
     catch (CommandException ce) {
-      cs.spigot().sendMessage(ce.getText());
+      if (applicator == null)
+        throw new IllegalStateException("Didn't receive an applicator reference");
+
+      applicator.sendChat(ce.getGetComponent(), p);
       return false;
     }
   }
@@ -382,32 +388,27 @@ public abstract class ACommand extends Command {
    * @param focusedArgument The argument that should be focused using the focus color
    * @return Array of components
    */
-  protected BaseComponent buildUsage(@Nullable Integer focusedArgument) {
-    BaseComponent head = new TextComponent(
+  protected IComponent buildUsage(@Nullable Integer focusedArgument) {
+    TextComponent head = new TextComponent(
       sect.getUsageMismatchPrefix().withPrefix() +
       sect.getUsageColorOther() + "/" + getName()
     );
 
     // Set the command's description as a tooltip
-    head.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{
-      new TextComponent(sect.getUsageColorOther() + getDescription())
-    }));
+    head.setHover(HoverAction.SHOW_TEXT, TextComponent.parseFromText(sect.getUsageColorOther() + getDescription(), gradientGenerator));
 
     // Add all it's arguments with their descriptive text as hover-tooltips
     for (int i = 0; i < this.cmdArgs.length; i++) {
       CommandArgument arg = this.cmdArgs[i];
 
       // Space out args
-      head.addExtra(new TextComponent(" "));
+      head.addSibling(new TextComponent(" "));
 
       // Decide whether to colorize the argument using normal
       // colors or using the focus color based on it's positional index
-      BaseComponent usage = new TextComponent(colorizeUsageString(arg.getName(), (focusedArgument != null && focusedArgument == i)));
-      usage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{
-        new TextComponent(sect.getUsageColorOther() + arg.getDescription())
-      }));
-
-      head.addExtra(usage);
+      TextComponent usage = new TextComponent(colorizeUsageString(arg.getName(), (focusedArgument != null && focusedArgument == i)));
+      usage.setHover(HoverAction.SHOW_TEXT, TextComponent.parseFromText(sect.getUsageColorOther() + arg.getDescription(), gradientGenerator));
+      head.addSibling(usage);
     }
 
     return head;
@@ -419,14 +420,14 @@ public abstract class ACommand extends Command {
    * Generate an internal error
    */
   protected CommandException internalError() {
-    return new InternalErrorException(sect);
+    return new InternalErrorException(sect, gradientGenerator);
   }
 
   /**
    * Generate a not a player error
    */
   protected CommandException notAPlayer() {
-    return new NotAPlayerException(sect);
+    return new NotAPlayerException(sect, gradientGenerator);
   }
 
   /**
@@ -445,7 +446,7 @@ public abstract class ACommand extends Command {
    */
   protected void ensurePermission(Player p, String perm) throws CommandException {
     if (!p.hasPermission(perm))
-      throw new MissingPermissionException(sect, perm);
+      throw new MissingPermissionException(sect, perm, gradientGenerator);
   }
 
   ///////////////////////////// Parsing: Player ///////////////////////////////
@@ -477,7 +478,7 @@ public abstract class ACommand extends Command {
 
     // The target player is not online at the moment
     if (target == null)
-      throw new OfflineTargetException(sect, args[index]);
+      throw new OfflineTargetException(sect, args[index], gradientGenerator);
 
     return target;
   }
@@ -516,7 +517,7 @@ public abstract class ACommand extends Command {
 
     // That player has never played before
     if (res.isEmpty())
-      throw new UnknownTargetException(sect, args[index]);
+      throw new UnknownTargetException(sect, args[index], gradientGenerator);
 
     return res.get();
   }
@@ -544,7 +545,7 @@ public abstract class ACommand extends Command {
     // Duration invalid
     int dur = timeUtil.parseDuration(args[index]);
     if (dur < 0)
-      throw new InvalidDurationException(sect, args[index]);
+      throw new InvalidDurationException(sect, args[index], gradientGenerator);
 
     return dur;
   }
@@ -578,7 +579,7 @@ public abstract class ACommand extends Command {
     try {
       return Float.parseFloat(args[index].replace(",", "."));
     } catch (NumberFormatException e) {
-      throw new InvalidFloatException(sect, args[index]);
+      throw new InvalidFloatException(sect, args[index], gradientGenerator);
     }
   }
 
@@ -609,7 +610,7 @@ public abstract class ACommand extends Command {
     try {
       return Integer.parseInt(args[index]);
     } catch (NumberFormatException e) {
-      throw new InvalidIntegerException(sect, args[index]);
+      throw new InvalidIntegerException(sect, args[index], gradientGenerator);
     }
   }
 
@@ -626,7 +627,7 @@ public abstract class ACommand extends Command {
     try {
       return UUID.fromString(args[index]);
     } catch (IllegalArgumentException e) {
-      throw new InvalidUuidException(sect, args[index]);
+      throw new InvalidUuidException(sect, args[index], gradientGenerator);
     }
   }
 
@@ -671,7 +672,7 @@ public abstract class ACommand extends Command {
     }
 
     // Could not find any matching constants
-    throw new InvalidEnumException(sect, args[index], enumClass.getEnumConstants());
+    throw new InvalidEnumException(sect, args[index], enumClass.getEnumConstants(), gradientGenerator);
   }
 
   /////////////////////////// Parsing: Argument spans /////////////////////////////

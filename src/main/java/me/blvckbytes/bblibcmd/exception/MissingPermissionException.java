@@ -1,6 +1,8 @@
 package me.blvckbytes.bblibcmd.exception;
 
 import me.blvckbytes.bblibcmd.CommandHandlerSection;
+import me.blvckbytes.bblibconfig.GradientGenerator;
+import org.jetbrains.annotations.Nullable;
 
 /*
   Author: BlvckBytes <blvckbytes@gmail.com>
@@ -23,12 +25,12 @@ import me.blvckbytes.bblibcmd.CommandHandlerSection;
 */
 public class MissingPermissionException extends CommandException {
 
-  public MissingPermissionException(CommandHandlerSection sect, String permission) {
+  public MissingPermissionException(CommandHandlerSection sect, String permission, @Nullable GradientGenerator gradientGenerator) {
     super(
       sect.getMissingPermission()
         .withPrefix()
         .withVariable("permission", permission)
-        .asComponent()
+        .asComponent(gradientGenerator)
     );
   }
 }

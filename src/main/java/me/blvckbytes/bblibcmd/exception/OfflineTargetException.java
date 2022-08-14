@@ -1,6 +1,8 @@
 package me.blvckbytes.bblibcmd.exception;
 
 import me.blvckbytes.bblibcmd.CommandHandlerSection;
+import me.blvckbytes.bblibconfig.GradientGenerator;
+import org.jetbrains.annotations.Nullable;
 
 /*
   Author: BlvckBytes <blvckbytes@gmail.com>
@@ -23,12 +25,12 @@ import me.blvckbytes.bblibcmd.CommandHandlerSection;
 */
 public class OfflineTargetException extends CommandException {
 
-  public OfflineTargetException(CommandHandlerSection sect, String name) {
+  public OfflineTargetException(CommandHandlerSection sect, String name, @Nullable GradientGenerator gradientGenerator) {
     super(
       sect.getOfflineTarget()
         .withPrefix()
         .withVariable("name", name)
-        .asComponent()
+        .asComponent(gradientGenerator)
     );
   }
 }

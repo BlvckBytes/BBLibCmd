@@ -1,6 +1,8 @@
 package me.blvckbytes.bblibcmd.exception;
 
 import me.blvckbytes.bblibcmd.CommandHandlerSection;
+import me.blvckbytes.bblibconfig.GradientGenerator;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -26,7 +28,7 @@ import java.util.stream.Collectors;
 */
 public class InvalidEnumException extends CommandException {
 
-  public InvalidEnumException(CommandHandlerSection sect, String input, Enum<?>[] options) {
+  public InvalidEnumException(CommandHandlerSection sect, String input, Enum<?>[] options, @Nullable GradientGenerator gradientGenerator) {
     super(
       sect.getInvalidEnum()
         .withPrefix()
@@ -37,7 +39,7 @@ public class InvalidEnumException extends CommandException {
             .map(Enum::name)
             .collect(Collectors.joining(", "))
         )
-        .asComponent()
+        .asComponent(gradientGenerator)
     );
   }
 }

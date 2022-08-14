@@ -1,6 +1,8 @@
 package me.blvckbytes.bblibcmd.exception;
 
 import me.blvckbytes.bblibcmd.CommandHandlerSection;
+import me.blvckbytes.bblibconfig.GradientGenerator;
+import org.jetbrains.annotations.Nullable;
 
 /*
   Author: BlvckBytes <blvckbytes@gmail.com>
@@ -23,11 +25,11 @@ import me.blvckbytes.bblibcmd.CommandHandlerSection;
 */
 public class InternalErrorException extends CommandException {
 
-  public InternalErrorException(CommandHandlerSection sect) {
+  public InternalErrorException(CommandHandlerSection sect, @Nullable GradientGenerator gradientGenerator) {
     super(
       sect.getInternalError()
         .withPrefix()
-        .asComponent()
+        .asComponent(gradientGenerator)
     );
   }
 }
