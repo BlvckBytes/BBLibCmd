@@ -1,7 +1,7 @@
 package me.blvckbytes.bblibcmd.exception;
 
 import me.blvckbytes.bblibcmd.CommandHandlerSection;
-import me.blvckbytes.bblibconfig.GradientGenerator;
+import me.blvckbytes.bblibutil.component.GradientGenerator;
 import org.jetbrains.annotations.Nullable;
 
 /*

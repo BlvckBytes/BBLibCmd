@@ -3,14 +3,15 @@ package me.blvckbytes.bblibcmd;
 import lombok.Getter;
 import me.blvckbytes.bblibcmd.exception.*;
 import me.blvckbytes.bblibconfig.ConfigValue;
-import me.blvckbytes.bblibconfig.GradientGenerator;
+import me.blvckbytes.bblibreflect.communicator.ChatCommunicator;
+import me.blvckbytes.bblibreflect.communicator.parameter.ChatMessageParameter;
+import me.blvckbytes.bblibutil.component.GradientGenerator;
 import me.blvckbytes.bblibconfig.IConfig;
-import me.blvckbytes.bblibconfig.component.HoverAction;
-import me.blvckbytes.bblibconfig.component.IComponent;
-import me.blvckbytes.bblibconfig.component.IComponentApplicator;
-import me.blvckbytes.bblibconfig.component.TextComponent;
+import me.blvckbytes.bblibutil.component.HoverAction;
+import me.blvckbytes.bblibutil.component.IComponent;
 import me.blvckbytes.bblibdi.AutoInjectLate;
 import me.blvckbytes.bblibutil.TimeUtil;
+import me.blvckbytes.bblibutil.component.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -57,7 +58,7 @@ public abstract class ACommand extends Command {
   private final CommandHandlerSection sect;
 
   @AutoInjectLate private TimeUtil timeUtil;
-  @AutoInjectLate private IComponentApplicator applicator;
+  @AutoInjectLate private ChatCommunicator chatCommunicator;
   @AutoInjectLate private GradientGenerator gradientGenerator;
 
   // The top level permission of this command
@@ -233,10 +234,10 @@ public abstract class ACommand extends Command {
 
     // Command exception occurred, send to command sender
     catch (CommandException ce) {
-      if (applicator == null)
+      if (chatCommunicator == null)
         throw new IllegalStateException("Didn't receive an applicator reference");
 
-      applicator.sendChat(ce.getGetComponent(), p);
+      chatCommunicator.sendParameterized(p, new ChatMessageParameter(ce.getGetComponent(), true));
       return false;
     }
   }

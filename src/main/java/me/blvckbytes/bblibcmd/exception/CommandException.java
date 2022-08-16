@@ -2,7 +2,7 @@ package me.blvckbytes.bblibcmd.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import me.blvckbytes.bblibconfig.component.IComponent;
+import me.blvckbytes.bblibutil.component.IComponent;
 
 /*
   Author: BlvckBytes <blvckbytes@gmail.com>
