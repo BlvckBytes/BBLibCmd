@@ -3,8 +3,10 @@ package me.blvckbytes.bblibcmd;
 import lombok.Getter;
 import me.blvckbytes.bblibcmd.exception.*;
 import me.blvckbytes.bblibconfig.ConfigValue;
-import me.blvckbytes.bblibreflect.communicator.ChatCommunicator;
+import me.blvckbytes.bblibreflect.IPacketInterceptor;
+import me.blvckbytes.bblibreflect.communicator.IPacketCommunicatorRegistry;
 import me.blvckbytes.bblibreflect.communicator.parameter.ChatMessageParameter;
+import me.blvckbytes.bblibreflect.communicator.parameter.ChatMessageType;
 import me.blvckbytes.bblibutil.component.GradientGenerator;
 import me.blvckbytes.bblibconfig.IConfig;
 import me.blvckbytes.bblibutil.component.HoverAction;
@@ -58,7 +60,7 @@ public abstract class ACommand extends Command {
   private final CommandHandlerSection sect;
 
   @AutoInjectLate private TimeUtil timeUtil;
-  @AutoInjectLate private ChatCommunicator chatCommunicator;
+  @AutoInjectLate private IPacketInterceptor interceptor;
   @AutoInjectLate private GradientGenerator gradientGenerator;
 
   // The top level permission of this command
@@ -234,10 +236,19 @@ public abstract class ACommand extends Command {
 
     // Command exception occurred, send to command sender
     catch (CommandException ce) {
-      if (chatCommunicator == null)
-        throw new IllegalStateException("Didn't receive an applicator reference");
+      if (p == null) {
+        cs.sendMessage(ce.getGetComponent().toPlainText());
+        return false;
+      }
 
-      chatCommunicator.sendParameterized(p, new ChatMessageParameter(ce.getGetComponent(), true));
+      if (interceptor == null)
+        throw new IllegalStateException("Didn't receive an IPacketInterceptor reference");
+
+      interceptor.getPacketCommunicatorRegistry().sendToPlayer(
+        new ChatMessageParameter(ce.getGetComponent(), p.getUniqueId(), ChatMessageType.CHAT),
+        p, null
+      );
+
       return false;
     }
   }
